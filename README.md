@@ -1,4 +1,4 @@
-# Sofle Choc or MX with 2 encoders. 
+# Sofle Choc or MX with 2 encoders.  Buy now at keyboardhoarders.com
 
 Flash firmware:
 1. Keep both halves powered on.
