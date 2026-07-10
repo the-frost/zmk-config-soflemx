@@ -31,27 +31,11 @@
         };
     };
 
-    // Phase 1 combos: the four sticky-modifier combos + Command Palette.
-    // Raise x2/x3 and Lower x2/x3 (sticky-layer / lock-layer via tap-dance)
-    // are deferred to Phase 2 as agreed.
+    // Sticky-modifier combos and Raise/Lower tap-dance (sticky/lock layers)
+    // were removed by request — accidental repeated presses risked locking
+    // a layer/modifier on unintentionally. Command Palette combo kept.
     combos {
         compatible = "zmk,combos";
-        sticky_ctrl {
-            bindings = <&sk LCTRL>;
-            key-positions = <52 57>;
-        };
-        sticky_alt {
-            bindings = <&sk LALT>;
-            key-positions = <51 58>;
-        };
-        sticky_gui {
-            bindings = <&sk LGUI>;
-            key-positions = <50 59>;
-        };
-        sticky_shift {
-            bindings = <&sk LSHFT>;
-            key-positions = <36 49>;
-        };
         cmd_palette {
             bindings = <&kp LG(LA(SPACE))>;
             key-positions = <54 55>;
@@ -65,13 +49,9 @@
             #binding-cells = <0>;
             continue-list = <POUND MINUS BACKSPACE UNDERSCORE>;
         };
-        // Mouse scroll on encoder rotation (Base-left, System-right)
-        scroll: scroll {
-            compatible = "zmk,behavior-sensor-rotate";
-            #sensor-binding-cells = <0>;
-            bindings = <&msc SCRL_DOWN>, <&msc SCRL_UP>;
-        };
-        // Explicitly unbound encoder rotation (System-left)
+        // Explicitly unbound encoder rotation (System layer, both encoders —
+        // holding both Raise+Lower to reach this layer while also spinning
+        // an encoder isn't practical, so left deliberately inert)
         rot_none: rot_none {
             compatible = "zmk,behavior-sensor-rotate";
             #sensor-binding-cells = <0>;
@@ -112,7 +92,7 @@
 &kp LSHFT       &kp Z   &kp X   &kp C   &kp V   &kp B   &mkp MCLK        &kp RETURN          &kp N   &kp M     &kp COMMA &kp DOT  &kp FSLH  &kp RSHFT
                         &kp LGUI &kp LALT &kp LCTRL &mo SYMBOLS &kp SPACE  &kp RETURN &mo NAV  &kp RCTRL &kp LALT &kp RGUI
             >;
-            sensor-bindings = <&scroll &inc_dec_kp RIGHT LEFT>;
+            sensor-bindings = <&inc_dec_kp UP DOWN &inc_dec_kp RIGHT LEFT>;
         };
 
         colemak_layer {
@@ -175,7 +155,7 @@
 &none           &tog ALT_LAYER   &none         &none         &none         &none    &none          &none          &none      &mkp LCLK  &mkp MCLK      &mkp RCLK    &none        &none
                         &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans
             >;
-            sensor-bindings = <&rot_none &scroll>;
+            sensor-bindings = <&rot_none &rot_none>;
         };
     };
 };
