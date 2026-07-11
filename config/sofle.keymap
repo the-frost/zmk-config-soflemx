@@ -11,9 +11,13 @@
 #include <dt-bindings/zmk/outputs.h>
 
 // Encoders
-&sensors { triggers-per-rotation = <30>; };
-&left_encoder { steps = <60>; };
-&right_encoder { steps = <60>; };
+&sensors { triggers-per-rotation = <20>; };
+&left_encoder { steps = <80>; };
+&right_encoder { steps = <80>; };
+// V15: was triggers-per-rotation=30 / steps=60 (ratio 2 counts/trigger),
+// which fired two logical triggers per physical detent on this hardware.
+// 20/80 (ratio 4 counts/trigger) matches standard 20-detent EC11 encoders.
+// First-guess fix, not yet hardware-verified — may need further tuning.
 
 #define BASE     0
 #define ALT_LAYER 1
@@ -93,24 +97,31 @@
         };
 
         // ---------------------------------------------------------------
-        // PHASE 2: Modifier-conditional encoders (nested mod-morph, priority
-        // Ctrl > Alt > Shift > default). Only built where the "held" variant
-        // is a genuinely different action — simple Mod+key combos (e.g.
-        // Base-right, both Navigation encoders) already happen for free
-        // when a real modifier is physically held, so those are untouched.
+        // PHASE 2/2.1: Modifier-conditional encoders (nested mod-morph,
+        // priority Ctrl > Alt > Shift > default). Only built where the
+        // "held" variant is a genuinely different action — Base-right stays
+        // untouched (all its variants are free Mod+key stacking). Navigation
+        // needed real branching added for ctrl_held only (V15 fix — Ctrl+
+        // PageUp/PageDown and Ctrl+Delete/Backspace are NOT simple stacking,
+        // they're different keys entirely; shift_held/alt_held on Nav remain
+        // free).
         //
-        // NOTE: the keymap-current YAML's encoder tables label Symbols-left
-        // and Symbols-right CW/CCW the opposite way round from what this
-        // firmware actually sends (confirmed against the live sensor-bindings
-        // below) — the YAML needs a documentation fix. These behaviors follow
-        // the firmware's actual, already-flashed direction (CW = increase /
-        // forward, matching Base-left's existing Up/Down feel).
+        // V15: Base-left default/shift direction reversed (CW=Down,
+        // CCW=Up) per feel preference. Base-left's alt_held now sends bare
+        // Tab/Shift+Tab (not Alt+Tab/Alt+Shift+Tab) so the real, already-held
+        // Alt modifier stays down across repeated taps — this keeps
+        // Windows' Alt-Tab switcher UI open until Alt is released, instead
+        // of flashing and dismissing immediately.
+        //
+        // NOTE: the keymap-current YAML/SVG previously had Base-right and
+        // both Navigation encoders' CW/CCW documentation swapped vs what the
+        // firmware actually sends — fixed in V15 docs.
         // ---------------------------------------------------------------
 
         bl_cw_a: bl_cw_a {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp UP>, <&kp LA(LS(TAB))>;
+            bindings = <&kp DOWN>, <&kp LS(TAB)>;
             mods = <(MOD_LALT|MOD_RALT)>;
         };
         bl_cw: bl_cw {
@@ -122,7 +133,7 @@
         bl_ccw_a: bl_ccw_a {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp DOWN>, <&kp LA(TAB)>;
+            bindings = <&kp UP>, <&kp TAB>;
             mods = <(MOD_LALT|MOD_RALT)>;
         };
         bl_ccw: bl_ccw {
@@ -236,6 +247,35 @@
             mods = <(MOD_LCTL|MOD_RCTL)>;
         };
 
+        // Navigation ctrl-held branches (V15): default (Down/Up, Right/Left)
+        // is free with real Shift/Alt held (natural stacking), but ctrl_held
+        // sends genuinely different keys (PageUp/PageDown, Delete/Backspace)
+        // so it needs real branching like the others above.
+        nav_left_cw: nav_left_cw {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp LC(DOWN)>, <&kp LC(PG_DN)>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+        nav_left_ccw: nav_left_ccw {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp LC(UP)>, <&kp LC(PG_UP)>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+        nav_right_cw: nav_right_cw {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp LC(RIGHT)>, <&kp LC(DEL)>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+        nav_right_ccw: nav_right_ccw {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp LC(LEFT)>, <&kp LC(BSPC)>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+
         // Sensor-rotate wrappers: sensor-bindings takes ONE entry per
         // encoder (not per direction), and that entry must itself be a
         // #sensor-binding-cells=0 behavior with separate cw/ccw bindings
@@ -255,6 +295,16 @@
             compatible = "zmk,behavior-sensor-rotate";
             #sensor-binding-cells = <0>;
             bindings = <&sr_cw>, <&sr_ccw>;
+        };
+        nav_left_rot: nav_left_rot {
+            compatible = "zmk,behavior-sensor-rotate";
+            #sensor-binding-cells = <0>;
+            bindings = <&nav_left_cw>, <&nav_left_ccw>;
+        };
+        nav_right_rot: nav_right_rot {
+            compatible = "zmk,behavior-sensor-rotate";
+            #sensor-binding-cells = <0>;
+            bindings = <&nav_right_cw>, <&nav_right_ccw>;
         };
     };
 
@@ -336,16 +386,22 @@
         nav_layer {
             display-name = "Navigation";
             // Reached by holding Lower (right thumb).
-            // Encoder press: left=Home, right=End (unchanged - Mod+Home/End
-            // combos already happen for free with a physical modifier held).
+            // V15: Left-hand home row (row2) is now Del, Ins, PrSc, CapsWord,
+            // CapsLock, ScrollLock — Undo/Cut/Copy/Paste and the bare
+            // Ctrl/Alt/Shift row were removed (no purpose on this layer; use
+            // home-row mods instead). Encoder press: left=Home, right=End
+            // (unchanged - Mod+Home/End combos already happen for free).
+            // Encoder rotation ctrl_held now genuinely branches (PageUp/
+            // PageDown, Delete/Backspace) instead of relying on natural
+            // stacking (see behaviors block above).
             bindings = <
-&trans  &kp INS      &kp PSCRN   &trans      &trans      &trans                                    &trans   &trans   &trans   &trans    &trans  &trans
-&trans  &kp LALT     &kp LCTRL   &kp LSHFT   &caps        &kp CLCK                                 &kp PG_UP &kp HOME &kp UP   &kp END   &trans  &kp DEL
-&kp DEL &kp K_UNDO    &kp K_CUT   &kp K_COPY  &kp K_PASTE &trans                                    &kp PG_DN &kp LEFT &kp DOWN &kp RIGHT &trans  &trans
+&trans  &trans       &trans      &trans      &trans      &trans                                    &trans   &trans   &trans   &trans    &trans  &trans
+&trans  &trans       &trans      &trans      &trans      &trans                                    &kp PG_UP &kp HOME &kp UP   &kp END   &trans  &kp DEL
+&kp DEL &kp INS       &kp PSCRN   &caps       &kp CLCK    &kp SLCK                                  &kp PG_DN &kp LEFT &kp DOWN &kp RIGHT &trans  &trans
 &trans  &trans        &trans      &trans      &trans      &trans   &kp HOME        &kp END          &kp K_APP &trans  &trans   &trans    &trans  &trans
                         &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans
             >;
-            sensor-bindings = <&inc_dec_kp LC(DOWN) LC(UP) &inc_dec_kp LC(RIGHT) LC(LEFT)>;
+            sensor-bindings = <&nav_left_rot &nav_right_rot>;
         };
 
         system_layer {
