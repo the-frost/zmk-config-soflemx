@@ -57,6 +57,205 @@
             #sensor-binding-cells = <0>;
             bindings = <&none>, <&none>;
         };
+
+        // ---------------------------------------------------------------
+        // PHASE 2: Home-row mods — bilateral (cross-hand) positional hold-tap.
+        // One behavior per hand; mod + tap keycode supplied per key position
+        // below, so the same hml/hmr definitions serve both Base (QWERTY)
+        // and the Colemak-DH overlay (only the tap letter differs per layer).
+        // hold-trigger-key-positions restricts a "hold" to only register when
+        // confirmed by a key press on the OPPOSITE hand (reduces accidental
+        // mod-firing during normal same-hand typing rolls).
+        // ---------------------------------------------------------------
+        hml: home_row_mod_left {
+            compatible = "zmk,behavior-hold-tap";
+            label = "HRM_LEFT";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            tapping-term-ms = <200>;
+            quick-tap-ms = <150>;
+            require-prior-idle-ms = <120>;
+            bindings = <&kp>, <&kp>;
+            hold-trigger-key-positions = <6 7 8 9 10 11 18 19 20 21 22 23 30 31 32 33 34 35 43 44 45 46 47 48 49 55 56 57 58 59>;
+            hold-trigger-on-release;
+        };
+        hmr: home_row_mod_right {
+            compatible = "zmk,behavior-hold-tap";
+            label = "HRM_RIGHT";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            tapping-term-ms = <200>;
+            quick-tap-ms = <150>;
+            require-prior-idle-ms = <120>;
+            bindings = <&kp>, <&kp>;
+            hold-trigger-key-positions = <0 1 2 3 4 5 12 13 14 15 16 17 24 25 26 27 28 29 36 37 38 39 40 41 42 50 51 52 53 54>;
+            hold-trigger-on-release;
+        };
+
+        // ---------------------------------------------------------------
+        // PHASE 2: Modifier-conditional encoders (nested mod-morph, priority
+        // Ctrl > Alt > Shift > default). Only built where the "held" variant
+        // is a genuinely different action — simple Mod+key combos (e.g.
+        // Base-right, both Navigation encoders) already happen for free
+        // when a real modifier is physically held, so those are untouched.
+        //
+        // NOTE: the keymap-current YAML's encoder tables label Symbols-left
+        // and Symbols-right CW/CCW the opposite way round from what this
+        // firmware actually sends (confirmed against the live sensor-bindings
+        // below) — the YAML needs a documentation fix. These behaviors follow
+        // the firmware's actual, already-flashed direction (CW = increase /
+        // forward, matching Base-left's existing Up/Down feel).
+        // ---------------------------------------------------------------
+
+        bl_cw_a: bl_cw_a {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp UP>, <&kp LA(LS(TAB))>;
+            mods = <(MOD_LALT|MOD_RALT)>;
+        };
+        bl_cw: bl_cw {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&bl_cw_a>, <&kp LC(MINUS)>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+        bl_ccw_a: bl_ccw_a {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp DOWN>, <&kp LA(TAB)>;
+            mods = <(MOD_LALT|MOD_RALT)>;
+        };
+        bl_ccw: bl_ccw {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&bl_ccw_a>, <&kp LC(EQUAL)>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+        bl_press_a: bl_press_a {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&mkp MCLK>, <&none>;
+            mods = <(MOD_LALT|MOD_RALT)>;
+        };
+        bl_press: bl_press {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&bl_press_a>, <&kp LC(N0)>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+
+        sl_cw_a: sl_cw_a {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp C_VOL_UP>, <&kp C_NEXT>;
+            mods = <(MOD_LALT|MOD_RALT)>;
+        };
+        sl_cw: sl_cw {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&sl_cw_a>, <&kp C_BRI_UP>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+        sl_ccw_a: sl_ccw_a {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp C_VOL_DN>, <&kp C_PREV>;
+            mods = <(MOD_LALT|MOD_RALT)>;
+        };
+        sl_ccw: sl_ccw {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&sl_ccw_a>, <&kp C_BRI_DN>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+        sl_press_a: sl_press_a {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp C_MUTE>, <&kp C_PP>;
+            mods = <(MOD_LALT|MOD_RALT)>;
+        };
+        sl_press: sl_press {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&sl_press_a>, <&none>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+
+        sr_cw_s: sr_cw_s {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp LC(EQUAL)>, <&kp LC(Y)>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        sr_cw_a: sr_cw_a {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&sr_cw_s>, <&kp LA(TAB)>;
+            mods = <(MOD_LALT|MOD_RALT)>;
+        };
+        sr_cw: sr_cw {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&sr_cw_a>, <&kp LC(TAB)>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+        sr_ccw_s: sr_ccw_s {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp LC(MINUS)>, <&kp LC(Z)>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        sr_ccw_a: sr_ccw_a {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&sr_ccw_s>, <&kp LA(LS(TAB))>;
+            mods = <(MOD_LALT|MOD_RALT)>;
+        };
+        sr_ccw: sr_ccw {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&sr_ccw_a>, <&kp LC(LS(TAB))>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+        sr_press_s: sr_press_s {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&kp LC(N0)>, <&kp PSCRN>;
+            mods = <(MOD_LSFT|MOD_RSFT)>;
+        };
+        sr_press_a: sr_press_a {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&sr_press_s>, <&kp LA(F4)>;
+            mods = <(MOD_LALT|MOD_RALT)>;
+        };
+        sr_press: sr_press {
+            compatible = "zmk,behavior-mod-morph";
+            #binding-cells = <0>;
+            bindings = <&sr_press_a>, <&kp LC(S)>;
+            mods = <(MOD_LCTL|MOD_RCTL)>;
+        };
+
+        // Sensor-rotate wrappers: sensor-bindings takes ONE entry per
+        // encoder (not per direction), and that entry must itself be a
+        // #sensor-binding-cells=0 behavior with separate cw/ccw bindings
+        // (same pattern as rot_none above). These wrap the mod-morph chains
+        // above so they can be used in sensor-bindings.
+        base_left_rot: base_left_rot {
+            compatible = "zmk,behavior-sensor-rotate";
+            #sensor-binding-cells = <0>;
+            bindings = <&bl_cw>, <&bl_ccw>;
+        };
+        sym_left_rot: sym_left_rot {
+            compatible = "zmk,behavior-sensor-rotate";
+            #sensor-binding-cells = <0>;
+            bindings = <&sl_cw>, <&sl_ccw>;
+        };
+        sym_right_rot: sym_right_rot {
+            compatible = "zmk,behavior-sensor-rotate";
+            #sensor-binding-cells = <0>;
+            bindings = <&sr_cw>, <&sr_ccw>;
+        };
     };
 
     macros {
@@ -77,22 +276,26 @@
             // QWERTY default (William's arm/typing-speed accommodation while
             // learning Colemak-DH — see project notes). QWCM key (System
             // layer) toggles the Colemak-DH overlay on/off for practice.
-            // Positions 42/43 (mid bottom-row) are the encoder push-buttons:
-            // left=Middle-click, right=Return.
+            // Positions 42/43 (mid bottom-row) are the encoder push-buttons.
+            // PHASE 2: home-row mods on A S D F / J K L ; (CAGS order,
+            // pinky->index: Ctrl, Alt, GUI, Shift). Thumb row reordered to
+            // match (Ctrl outermost, GUI innermost) for consistency.
+            // Encoder rotation/press now modifier-conditional (see behaviors
+            // block above).
             // ---------------------------------------------------------------------------------------------
             // |   Esc  |  1  |  2  |  3  |  4  |  5  |                | 6  |  7  |  8  |  9  |  0  |   -   |
             // |  Tab   |  Q  |  W  |  E  |  R  |  T  |                | Y  |  U  |  I  |  O  |  P  | BkSp  |
-            // |  BkSp  |  A  |  S  |  D  |  F  |  G  |                | H  |  J  |  K  |  L  |  ;  |   '   |
-            // | Shift  |  Z  |  X  |  C  |  V  |  B  | [MidClk]|[Ret] | N  |  M  |  ,  |  .  |  /  | Shift |
-            //                | GUI | Alt | Ctrl| Raise| Space |  | Return | Lower| Ctrl | Alt | GUI |
+            // |  BkSp  | A/Ctrl | S/Alt | D/GUI | F/Shift |  G  |      | H  | J/Shift | K/GUI | L/Alt | ;/Ctrl |   '   |
+            // | Shift  |  Z  |  X  |  C  |  V  |  B  | [MidClk*]|[Ret] | N  |  M  |  ,  |  .  |  /  | Shift |
+            //                | Ctrl | Alt | GUI| Raise| Space |  | Return | Lower| GUI | Alt | Ctrl |
             bindings = <
-&kp ESC         &kp N1  &kp N2  &kp N3  &kp N4  &kp N5                                       &kp N6  &kp N7    &kp N8    &kp N9   &kp N0    &kp MINUS
-&kp TAB         &kp Q   &kp W   &kp E   &kp R   &kp T                                        &kp Y   &kp U     &kp I     &kp O    &kp P     &kp BSPC
-&kp BSPC        &kp A   &kp S   &kp D   &kp F   &kp G                                        &kp H   &kp J     &kp K     &kp L    &kp SEMI  &kp SQT
-&kp LSHFT       &kp Z   &kp X   &kp C   &kp V   &kp B   &mkp MCLK        &kp RETURN          &kp N   &kp M     &kp COMMA &kp DOT  &kp FSLH  &kp RSHFT
-                        &kp LGUI &kp LALT &kp LCTRL &mo SYMBOLS &kp SPACE  &kp RETURN &mo NAV  &kp RCTRL &kp LALT &kp RGUI
+&kp ESC         &kp N1  &kp N2  &kp N3  &kp N4  &kp N5                                                                &kp N6  &kp N7    &kp N8    &kp N9   &kp N0    &kp MINUS
+&kp TAB         &kp Q   &kp W   &kp E   &kp R   &kp T                                                                 &kp Y   &kp U     &kp I     &kp O    &kp P     &kp BSPC
+&kp BSPC        &hml LCTRL A &hml LALT S &hml LGUI D &hml LSHFT F &kp G                                               &kp H   &hmr RSHFT J &hmr RGUI K &hmr RALT L &hmr RCTRL SEMI &kp SQT
+&kp LSHFT       &kp Z   &kp X   &kp C   &kp V   &kp B   &bl_press        &kp RETURN                                   &kp N   &kp M     &kp COMMA &kp DOT  &kp FSLH  &kp RSHFT
+                        &kp LCTRL &kp LALT &kp LGUI &mo SYMBOLS &kp SPACE  &kp RETURN &mo NAV  &kp RGUI &kp LALT &kp RCTRL
             >;
-            sensor-bindings = <&inc_dec_kp UP DOWN &inc_dec_kp RIGHT LEFT>;
+            sensor-bindings = <&base_left_rot &inc_dec_kp RIGHT LEFT>;
         };
 
         colemak_layer {
@@ -101,11 +304,14 @@
             // Toggled on/off by the QWCM key on the System layer (&tog ALT_LAYER).
             // QWERTY (default_layer) is now the default; this overlay is reached
             // via the QWCM toggle key when Colemak-DH practice is wanted.
+            // PHASE 2: home-row mods duplicated here with Colemak-DH letters
+            // (A/Ctrl unchanged; R/Alt, S/GUI, T/Shift; mirrored N/Shift,
+            // E/GUI, I/Alt, O/Ctrl) — same physical positions/mods as Base.
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans                                &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &kp Q   &kp W   &kp F   &kp P   &kp B                                 &kp J   &kp L   &kp U   &kp Y   &kp SEMI &trans
-&trans  &kp A   &kp R   &kp S   &kp T   &kp G                                 &kp M   &kp N   &kp E   &kp I   &kp O   &trans
-&trans  &kp Z   &kp X   &kp C   &kp D   &kp V   &trans          &trans        &kp K   &kp H   &kp COMMA &kp DOT &kp FSLH &trans
+&trans  &trans  &trans  &trans  &trans  &trans                                                          &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &kp Q   &kp W   &kp F   &kp P   &kp B                                                            &kp J   &kp L   &kp U   &kp Y   &kp SEMI &trans
+&trans  &hml LCTRL A &hml LALT R &hml LGUI S &hml LSHFT T &kp G                                           &kp M   &hmr RSHFT N &hmr RGUI E &hmr RALT I &hmr RCTRL O &trans
+&trans  &kp Z   &kp X   &kp C   &kp D   &kp V   &trans          &trans                                   &kp K   &kp H   &kp COMMA &kp DOT &kp FSLH &trans
                         &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans
             >;
             // No sensor-bindings — rotation falls through to Base.
@@ -114,25 +320,24 @@
         symbols_layer {
             display-name = "Symbols";
             // Reached by holding Raise (left thumb). Numpad aligned under the
-            // number row. Encoder press: left=Mute, right=Ctrl+0 (reset zoom).
+            // number row. PHASE 2: encoder press/rotation now modifier-
+            // conditional (Ctrl=brightness/zoom-tabs, Alt=track/window-tabs,
+            // Shift on right encoder=undo/redo/printscreen — see behaviors).
             bindings = <
 &trans  &kp F1  &kp F2  &kp F3  &kp F4  &kp F5                                     &trans  &kp N7  &kp N8  &kp N9    &kp FSLH  &kp MINUS
 &trans  &kp F6  &kp F7  &kp F8  &kp F9  &kp F10                                    &trans  &kp N4  &kp N5  &kp N6    &kp ASTRK &kp DEL
 &kp DEL &kp F11 &kp F12 &kp LEFT_PARENTHESIS &kp RIGHT_PARENTHESIS &kp TILDE       &trans  &kp N1  &kp N2  &kp N3    &kp PLUS  &kp RETURN
-&trans  &kp LEFT_BRACKET &kp RIGHT_BRACKET &kp LEFT_BRACE &kp RIGHT_BRACE &kp GRAVE &kp C_MUTE  &kp LC(N0)   &trans  &kp N0  &zero_zero &kp DOT &kp EQUAL &kp RETURN
+&trans  &kp LEFT_BRACKET &kp RIGHT_BRACKET &kp LEFT_BRACE &kp RIGHT_BRACE &kp GRAVE &sl_press  &sr_press   &trans  &kp N0  &zero_zero &kp DOT &kp EQUAL &kp RETURN
                         &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans
             >;
-            sensor-bindings = <&inc_dec_kp C_VOL_UP C_VOL_DN &inc_dec_kp LC(EQUAL) LC(MINUS)>;
+            sensor-bindings = <&sym_left_rot &sym_right_rot>;
         };
 
         nav_layer {
             display-name = "Navigation";
             // Reached by holding Lower (right thumb).
-            // Encoder press: left=Home, right=End.
-            // Ctrl+Backspace/Ctrl+Delete on right encoder Ctrl-row (see V8 spec)
-            // is a modifier-conditional behavior — deferred to Phase 2 along
-            // with the rest of the modifier-aware encoder logic; default
-            // (unmodified) rotation only for now.
+            // Encoder press: left=Home, right=End (unchanged - Mod+Home/End
+            // combos already happen for free with a physical modifier held).
             bindings = <
 &trans  &kp INS      &kp PSCRN   &trans      &trans      &trans                                    &trans   &trans   &trans   &trans    &trans  &trans
 &trans  &kp LALT     &kp LCTRL   &kp LSHFT   &caps        &kp CLCK                                 &kp PG_UP &kp HOME &kp UP   &kp END   &trans  &kp DEL
