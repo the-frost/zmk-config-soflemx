@@ -38,14 +38,6 @@
     // Sticky-modifier combos and Raise/Lower tap-dance (sticky/lock layers)
     // were removed by request — accidental repeated presses risked locking
     // a layer/modifier on unintentionally. Command Palette combo kept.
-    combos {
-        compatible = "zmk,combos";
-        cmd_palette {
-            bindings = <&kp LG(LA(SPACE))>;
-            key-positions = <54 55>;
-        };
-    };
-
     behaviors {
         caps: caps {
             compatible = "zmk,behavior-caps-word";
@@ -118,42 +110,14 @@
         // firmware actually sends — fixed in V15 docs.
         // ---------------------------------------------------------------
 
-        bl_cw_a: bl_cw_a {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&kp DOWN>, <&kp LS(TAB)>;
-            mods = <(MOD_LALT|MOD_RALT)>;
-        };
-        bl_cw: bl_cw {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&bl_cw_a>, <&kp LC(MINUS)>;
-            mods = <(MOD_LCTL|MOD_RCTL)>;
-        };
-        bl_ccw_a: bl_ccw_a {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&kp UP>, <&kp TAB>;
-            mods = <(MOD_LALT|MOD_RALT)>;
-        };
-        bl_ccw: bl_ccw {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&bl_ccw_a>, <&kp LC(EQUAL)>;
-            mods = <(MOD_LCTL|MOD_RCTL)>;
-        };
-        bl_press_a: bl_press_a {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&mkp MCLK>, <&none>;
-            mods = <(MOD_LALT|MOD_RALT)>;
-        };
-        bl_press: bl_press {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&bl_press_a>, <&kp LC(N0)>;
-            mods = <(MOD_LCTL|MOD_RCTL)>;
-        };
+        // V16: bl_cw/bl_ccw mod-morph chains removed — base-left encoder
+        // rotation is now a plain inc_dec_kp (see sensor-bindings below), so
+        // any physically-held modifier (Ctrl/Alt/Shift) stacks naturally
+        // onto Down/Up without needing dedicated behaviors.
+        // V17: bl_press/bl_press_a removed entirely — both Base encoders'
+        // push-buttons (positions 7/8 in row 4) are now unbound (&none).
+        // Rotation-only on both encoders; pressing them wasn't comfortable
+        // enough to be worth keeping a press action.
 
         sl_cw_a: sl_cw_a {
             compatible = "zmk,behavior-mod-morph";
@@ -192,16 +156,16 @@
             mods = <(MOD_LCTL|MOD_RCTL)>;
         };
 
-        sr_cw_s: sr_cw_s {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&kp LC(EQUAL)>, <&kp LC(Y)>;
-            mods = <(MOD_LSFT|MOD_RSFT)>;
-        };
+        // V16: sr_cw_s/sr_ccw_s (shift-held Ctrl+Y/Ctrl+Z) and the whole
+        // sr_press chain (shift/ctrl/alt press variants: PrtScn, Ctrl+S,
+        // Alt+F4) were removed by request. Press now just sends Ctrl+0
+        // directly in the layer bindings (no behavior needed). Rotation's
+        // shift branch folded away — shift+encoder now falls through to
+        // the same default as no modifier.
         sr_cw_a: sr_cw_a {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&sr_cw_s>, <&kp LA(TAB)>;
+            bindings = <&kp LC(EQUAL)>, <&kp LA(TAB)>;
             mods = <(MOD_LALT|MOD_RALT)>;
         };
         sr_cw: sr_cw {
@@ -210,16 +174,10 @@
             bindings = <&sr_cw_a>, <&kp LC(TAB)>;
             mods = <(MOD_LCTL|MOD_RCTL)>;
         };
-        sr_ccw_s: sr_ccw_s {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&kp LC(MINUS)>, <&kp LC(Z)>;
-            mods = <(MOD_LSFT|MOD_RSFT)>;
-        };
         sr_ccw_a: sr_ccw_a {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&sr_ccw_s>, <&kp LA(LS(TAB))>;
+            bindings = <&kp LC(MINUS)>, <&kp LA(LS(TAB))>;
             mods = <(MOD_LALT|MOD_RALT)>;
         };
         sr_ccw: sr_ccw {
@@ -228,64 +186,21 @@
             bindings = <&sr_ccw_a>, <&kp LC(LS(TAB))>;
             mods = <(MOD_LCTL|MOD_RCTL)>;
         };
-        sr_press_s: sr_press_s {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&kp LC(N0)>, <&kp PSCRN>;
-            mods = <(MOD_LSFT|MOD_RSFT)>;
-        };
-        sr_press_a: sr_press_a {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&sr_press_s>, <&kp LA(F4)>;
-            mods = <(MOD_LALT|MOD_RALT)>;
-        };
-        sr_press: sr_press {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&sr_press_a>, <&kp LC(S)>;
-            mods = <(MOD_LCTL|MOD_RCTL)>;
-        };
 
         // Navigation ctrl-held branches (V15): default (Down/Up, Right/Left)
         // is free with real Shift/Alt held (natural stacking), but ctrl_held
         // sends genuinely different keys (PageUp/PageDown, Delete/Backspace)
         // so it needs real branching like the others above.
-        nav_left_cw: nav_left_cw {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&kp LC(DOWN)>, <&kp LC(PG_DN)>;
-            mods = <(MOD_LCTL|MOD_RCTL)>;
-        };
-        nav_left_ccw: nav_left_ccw {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&kp LC(UP)>, <&kp LC(PG_UP)>;
-            mods = <(MOD_LCTL|MOD_RCTL)>;
-        };
-        nav_right_cw: nav_right_cw {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&kp LC(RIGHT)>, <&kp LC(DEL)>;
-            mods = <(MOD_LCTL|MOD_RCTL)>;
-        };
-        nav_right_ccw: nav_right_ccw {
-            compatible = "zmk,behavior-mod-morph";
-            #binding-cells = <0>;
-            bindings = <&kp LC(LEFT)>, <&kp LC(BSPC)>;
-            mods = <(MOD_LCTL|MOD_RCTL)>;
-        };
+        // V16: nav_left_cw/ccw and nav_right_cw/ccw mod-morph chains
+        // removed — both Nav encoders are now plain inc_dec_kp (PgUp/PgDn,
+        // Home/End — see sensor-bindings below), so held modifiers stack
+        // naturally instead of needing explicit branches.
 
         // Sensor-rotate wrappers: sensor-bindings takes ONE entry per
         // encoder (not per direction), and that entry must itself be a
         // #sensor-binding-cells=0 behavior with separate cw/ccw bindings
         // (same pattern as rot_none above). These wrap the mod-morph chains
         // above so they can be used in sensor-bindings.
-        base_left_rot: base_left_rot {
-            compatible = "zmk,behavior-sensor-rotate";
-            #sensor-binding-cells = <0>;
-            bindings = <&bl_cw>, <&bl_ccw>;
-        };
         sym_left_rot: sym_left_rot {
             compatible = "zmk,behavior-sensor-rotate";
             #sensor-binding-cells = <0>;
@@ -295,16 +210,6 @@
             compatible = "zmk,behavior-sensor-rotate";
             #sensor-binding-cells = <0>;
             bindings = <&sr_cw>, <&sr_ccw>;
-        };
-        nav_left_rot: nav_left_rot {
-            compatible = "zmk,behavior-sensor-rotate";
-            #sensor-binding-cells = <0>;
-            bindings = <&nav_left_cw>, <&nav_left_ccw>;
-        };
-        nav_right_rot: nav_right_rot {
-            compatible = "zmk,behavior-sensor-rotate";
-            #sensor-binding-cells = <0>;
-            bindings = <&nav_right_cw>, <&nav_right_ccw>;
         };
     };
 
@@ -341,11 +246,11 @@
             bindings = <
 &kp ESC         &kp N1  &kp N2  &kp N3  &kp N4  &kp N5                                                                &kp N6  &kp N7    &kp N8    &kp N9   &kp N0    &kp MINUS
 &kp TAB         &kp Q   &kp W   &kp E   &kp R   &kp T                                                                 &kp Y   &kp U     &kp I     &kp O    &kp P     &kp BSPC
-&kp BSPC        &hml LCTRL A &hml LALT S &hml LGUI D &hml LSHFT F &kp G                                               &kp H   &hmr RSHFT J &hmr RGUI K &hmr RALT L &hmr RCTRL SEMI &kp SQT
-&kp LSHFT       &kp Z   &kp X   &kp C   &kp V   &kp B   &bl_press        &kp RETURN                                   &kp N   &kp M     &kp COMMA &kp DOT  &kp FSLH  &kp RSHFT
-                        &kp LCTRL &kp LALT &kp LGUI &mo SYMBOLS &kp SPACE  &kp RETURN &mo NAV  &kp RGUI &kp LALT &kp RCTRL
+&kp BSPC        &hml LCTRL A &hml LGUI S &hml LALT D &hml LSHFT F &kp G                                               &kp H   &hmr RSHFT J &hmr RALT K &hmr RGUI L &hmr RCTRL SEMI &kp SQT
+&kp LSHFT       &kp Z   &kp X   &kp C   &kp V   &kp B   &none        &none                                   &kp N   &kp M     &kp COMMA &kp DOT  &kp FSLH  &kp RSHFT
+                        &kp LCTRL &kp LGUI &kp LALT &mo SYMBOLS &kp SPACE  &kp RETURN &mo NAV  &kp RALT &kp RGUI &kp RCTRL
             >;
-            sensor-bindings = <&base_left_rot &inc_dec_kp RIGHT LEFT>;
+            sensor-bindings = <&inc_dec_kp DOWN UP &inc_dec_kp RIGHT LEFT>;
         };
 
         colemak_layer {
@@ -360,7 +265,7 @@
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans                                                          &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &kp Q   &kp W   &kp F   &kp P   &kp B                                                            &kp J   &kp L   &kp U   &kp Y   &kp SEMI &trans
-&trans  &hml LCTRL A &hml LALT R &hml LGUI S &hml LSHFT T &kp G                                           &kp M   &hmr RSHFT N &hmr RGUI E &hmr RALT I &hmr RCTRL O &trans
+&trans  &hml LCTRL A &hml LGUI R &hml LALT S &hml LSHFT T &kp G                                           &kp M   &hmr RSHFT N &hmr RALT E &hmr RGUI I &hmr RCTRL O &trans
 &trans  &kp Z   &kp X   &kp C   &kp D   &kp V   &trans          &trans                                   &kp K   &kp H   &kp COMMA &kp DOT &kp FSLH &trans
                         &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans
             >;
@@ -374,10 +279,10 @@
             // conditional (Ctrl=brightness/zoom-tabs, Alt=track/window-tabs,
             // Shift on right encoder=undo/redo/printscreen — see behaviors).
             bindings = <
-&trans  &kp F1  &kp F2  &kp F3  &kp F4  &kp F5                                     &trans  &kp N7  &kp N8  &kp N9    &kp FSLH  &kp MINUS
-&trans  &kp F6  &kp F7  &kp F8  &kp F9  &kp F10                                    &trans  &kp N4  &kp N5  &kp N6    &kp ASTRK &kp DEL
-&kp DEL &kp F11 &kp F12 &kp LEFT_PARENTHESIS &kp RIGHT_PARENTHESIS &kp TILDE       &trans  &kp N1  &kp N2  &kp N3    &kp PLUS  &kp RETURN
-&trans  &kp LEFT_BRACKET &kp RIGHT_BRACKET &kp LEFT_BRACE &kp RIGHT_BRACE &kp GRAVE &sl_press  &sr_press   &trans  &kp N0  &zero_zero &kp DOT &kp EQUAL &kp RETURN
+&kp LG(SPACE)  &kp F1  &kp F2  &kp F3  &kp F4  &kp F5                                     &tog SYMBOLS  &kp N7  &kp N8  &kp N9    &kp FSLH  &kp MINUS
+&kp LA(GRAVE)  &kp F6  &kp F7  &kp F8  &kp F9  &kp F10                                    &trans  &kp N4  &kp N5  &kp N6    &kp ASTRK &kp DEL
+&kp DEL &kp F11 &kp F12 &kp LEFT_PARENTHESIS &kp RIGHT_PARENTHESIS &kp TILDE       &kp BACKSLASH  &kp N1  &kp N2  &kp N3    &kp PLUS  &kp RETURN
+&trans  &kp LEFT_BRACKET &kp RIGHT_BRACKET &kp LEFT_BRACE &kp RIGHT_BRACE &kp GRAVE &sl_press  &kp LC(N0)   &kp PIPE  &kp N0  &zero_zero &kp DOT &kp EQUAL &kp RETURN
                         &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans
             >;
             sensor-bindings = <&sym_left_rot &sym_right_rot>;
@@ -395,13 +300,13 @@
             // PageDown, Delete/Backspace) instead of relying on natural
             // stacking (see behaviors block above).
             bindings = <
-&trans  &trans       &trans      &trans      &trans      &trans                                    &trans   &trans   &trans   &trans    &trans  &trans
-&trans  &trans       &trans      &trans      &trans      &trans                                    &kp PG_UP &kp HOME &kp UP   &kp END   &trans  &kp DEL
+&trans  &trans       &trans      &trans      &trans      &trans                                    &tog NAV &trans   &trans   &trans    &trans  &trans
+&trans  &trans       &trans      &trans      &trans      &kp PAUSE_BREAK                                    &kp PG_UP &kp HOME &kp UP   &kp END   &trans  &kp DEL
 &kp DEL &kp INS       &kp PSCRN   &caps       &kp CLCK    &kp SLCK                                  &kp PG_DN &kp LEFT &kp DOWN &kp RIGHT &trans  &trans
-&trans  &trans        &trans      &trans      &trans      &trans   &kp HOME        &kp END          &kp K_APP &trans  &trans   &trans    &trans  &trans
+&trans  &trans        &trans      &trans      &trans      &trans   &trans        &trans          &kp K_APP &trans  &trans   &trans    &trans  &trans
                         &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans
             >;
-            sensor-bindings = <&nav_left_rot &nav_right_rot>;
+            sensor-bindings = <&inc_dec_kp PG_DN PG_UP &inc_dec_kp END HOME>;
         };
 
         system_layer {
@@ -410,7 +315,7 @@
             // QWCM toggle key lives here (row4, col1) — toggles the
             // Colemak-DH overlay layer on/off.
             bindings = <
-&bt BT_CLR_ALL  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4                          &none       &none      &none          &none        &none        &out OUT_TOG
+&bt BT_CLR_ALL  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4                          &tog SYSTEM       &none      &none          &none        &none        &out OUT_TOG
 &ext_power EP_TOG &none       &none         &none         &none         &studio_unlock                       &msc SCRL_UP &none      &mmv MOVE_UP   &none        &none        &none
 &none           &none         &none         &none         &none         &trans                                &msc SCRL_DOWN &mmv MOVE_LEFT &mmv MOVE_DOWN &mmv MOVE_RIGHT &none    &none
 &none           &tog ALT_LAYER   &none         &none         &none         &none    &none          &none          &none      &mkp LCLK  &mkp MCLK      &mkp RCLK    &none        &none
