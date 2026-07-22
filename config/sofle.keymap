@@ -165,7 +165,10 @@
         sr_cw_a: sr_cw_a {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp LC(EQUAL)>, <&kp LA(TAB)>;
+            // V20 fix: bare TAB (not LA(TAB)) so the real, already-held Alt
+            // stays down across repeated taps -- keeps the Windows Alt-Tab
+            // switcher open instead of flashing/dismissing each rotation.
+            bindings = <&kp LC(EQUAL)>, <&kp TAB>;
             mods = <(MOD_LALT|MOD_RALT)>;
         };
         sr_cw: sr_cw {
@@ -177,7 +180,8 @@
         sr_ccw_a: sr_ccw_a {
             compatible = "zmk,behavior-mod-morph";
             #binding-cells = <0>;
-            bindings = <&kp LC(MINUS)>, <&kp LA(LS(TAB))>;
+            // V20 fix: bare Shift+Tab (not Alt+Shift+Tab) -- see sr_cw_a note.
+            bindings = <&kp LC(MINUS)>, <&kp LS(TAB)>;
             mods = <(MOD_LALT|MOD_RALT)>;
         };
         sr_ccw: sr_ccw {
@@ -281,9 +285,9 @@
             bindings = <
 &kp LG(SPACE)  &kp F1  &kp F2  &kp F3  &kp F4  &kp F5                                     &tog SYMBOLS  &kp N7  &kp N8  &kp N9    &kp FSLH  &kp MINUS
 &kp LA(GRAVE)  &kp F6  &kp F7  &kp F8  &kp F9  &kp F10                                    &trans  &kp N4  &kp N5  &kp N6    &kp ASTRK &kp DEL
-&kp DEL &kp F11 &kp F12 &kp LEFT_PARENTHESIS &kp RIGHT_PARENTHESIS &kp TILDE       &kp BACKSLASH  &kp N1  &kp N2  &kp N3    &kp PLUS  &kp RETURN
-&trans  &kp LEFT_BRACKET &kp RIGHT_BRACKET &kp LEFT_BRACE &kp RIGHT_BRACE &kp GRAVE &sl_press  &kp LC(N0)   &kp PIPE  &kp N0  &zero_zero &kp DOT &kp EQUAL &kp RETURN
-                        &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans
+&kp DEL &kp F11 &kp F12 &kp TILDE &kp GRAVE &kp EQUAL       &kp BACKSLASH  &kp N1  &kp N2  &kp N3    &kp PLUS  &kp RETURN
+&trans  &kp LEFT_BRACKET &kp RIGHT_BRACKET &kp LEFT_BRACE &kp RIGHT_BRACE &kp MINUS &sl_press  &kp LC(N0)   &kp PIPE  &kp N0  &zero_zero &kp DOT &kp EQUAL &kp RETURN
+                        &trans  &trans  &trans  &trans  &kp RETURN    &trans  &trans  &trans  &trans  &trans
             >;
             sensor-bindings = <&sym_left_rot &sym_right_rot>;
         };
@@ -291,20 +295,24 @@
         nav_layer {
             display-name = "Navigation";
             // Reached by holding Lower (right thumb).
-            // V15: Left-hand home row (row2) is now Del, Ins, PrSc, CapsWord,
-            // CapsLock, ScrollLock — Undo/Cut/Copy/Paste and the bare
-            // Ctrl/Alt/Shift row were removed (no purpose on this layer; use
-            // home-row mods instead). Encoder press: left=Home, right=End
-            // (unchanged - Mod+Home/End combos already happen for free).
-            // Encoder rotation ctrl_held now genuinely branches (PageUp/
-            // PageDown, Delete/Backspace) instead of relying on natural
-            // stacking (see behaviors block above).
+            // V20: full left-hand mirror of the right-hand navigation keys,
+            // using QWERTY finger positions as the guide:
+            //   Row2: Q=Caps Word, W=Home, E=Up, R=End, T=Page Up
+            //   Row3: A=Caps Lock, S=Left, D=Down, F=Right, G=Page Down
+            //   Row4: Z=Insert, X=Print Screen, C=Pause/Break, V=Scroll Lock
+            // Right hand is unchanged (Home-row 2/3, arrows/PgUp/PgDn already
+            // there) -- both hands now give the same functions.
+            // V15: Undo/Cut/Copy/Paste and the bare Ctrl/Alt/Shift row were
+            // removed (no purpose on this layer; use home-row mods instead).
+            // Encoder press: unbound on both (see V16/V17 notes). Encoder
+            // rotation ctrl_held branches (PageUp/PageDown, Delete/Backspace)
+            // instead of relying on natural stacking (see behaviors above).
             bindings = <
 &trans  &trans       &trans      &trans      &trans      &trans                                    &tog NAV &trans   &trans   &trans    &trans  &trans
-&trans  &trans       &trans      &trans      &trans      &kp PAUSE_BREAK                                    &kp PG_UP &kp HOME &kp UP   &kp END   &trans  &kp DEL
-&kp DEL &kp INS       &kp PSCRN   &caps       &kp CLCK    &kp SLCK                                  &kp PG_DN &kp LEFT &kp DOWN &kp RIGHT &trans  &trans
-&trans  &trans        &trans      &trans      &trans      &trans   &trans        &trans          &kp K_APP &trans  &trans   &trans    &trans  &trans
-                        &trans  &trans  &trans  &trans  &trans    &trans  &trans  &trans  &trans  &trans
+&trans  &caps        &kp HOME    &kp UP      &kp END     &kp PG_UP                                 &kp PG_UP &kp HOME &kp UP   &kp END   &trans  &kp DEL
+&kp DEL &kp CLCK      &kp LEFT    &kp DOWN    &kp RIGHT   &kp PG_DN                                 &kp PG_DN &kp LEFT &kp DOWN &kp RIGHT &trans  &trans
+&trans  &kp INS       &kp PSCRN   &kp PAUSE_BREAK &kp SLCK &trans   &trans        &trans          &kp K_APP &trans  &trans   &trans    &trans  &trans
+                        &trans  &trans  &trans  &trans  &trans    &kp SPACE  &trans  &trans  &trans  &trans
             >;
             sensor-bindings = <&inc_dec_kp PG_DN PG_UP &inc_dec_kp END HOME>;
         };
